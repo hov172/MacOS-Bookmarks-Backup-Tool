@@ -6,6 +6,9 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 
 ** 2 Version one with the Setting tab and on without.
 
+<img width="1152" height="842" alt="bookmarkstool" src="https://github.com/user-attachments/assets/53c065f5-2edb-4951-a64d-d655d3555a11" />
+
+
 ## Features
 
 - **Dual Interface**: Use the intuitive GUI for easy operation or the robust CLI for scripting.
