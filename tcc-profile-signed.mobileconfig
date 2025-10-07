@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadType</key>
+			<string>com.apple.TCC.configuration-profile-policy</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>Services</key>
+			<dict>
+				<key>SystemPolicyAllFiles</key>
+				<array>
+					<dict>
+						<key>Identifier</key>
+						<string>com.Ayala.Solutions.BookmarksBackupTool</string>
+						<key>IdentifierType</key>
+						<string>bundleID</string>
+						<key>CodeRequirement</key>
+						<string>identifier "com.Ayala.Solutions.BookmarksBackupTool" and anchor apple generic</string>
+						<key>Allowed</key>
+						<true/>
+					</dict>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string>Grants Full Disk Access to Bookmark Backup Tool.</string>
+	<key>PayloadDisplayName</key>
+	<string>Bookmark Backup Tool TCC Profile</string>
+	<key>PayloadIdentifier</key>
+	<string>com.Ayala.Solutions.BookmarksBackupTool.tcc</string>
+	<key>PayloadOrganization</key>
+	<string>Ayala Solutions</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>A5A9A2E1-C8E6-4C5E-B6E3-1F4F9A8A8A8A</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
