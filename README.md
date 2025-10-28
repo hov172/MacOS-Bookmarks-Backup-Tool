@@ -1,10 +1,10 @@
-# Bookmark Backup Tool - v2.2 beta
+# Bookmark Backup Tool - v2.5.0
 
 **Bookmark Backup Tool** is a powerful utility for macOS designed to back up, restore, and manage your web browser bookmarks. It offers both a user-friendly graphical interface (GUI) and a comprehensive command-line interface (CLI) for power users and automation.
 
 Whether you want to perform a quick manual backup, schedule regular automated exports, or migrate bookmarks, this tool has you covered.
 
-** 2 Version one with the Setting tab and on without.
+**Two variants**: the standard build exposes the Settings tab, while managed deployments can hide it by shipping a `Settings.plist` with `ShowSettingsTab` set to `false`.
 
 <img width="1152" height="842" alt="bookmarkstool" src="https://github.com/user-attachments/assets/53c065f5-2edb-4951-a64d-d655d3555a11" />
 
@@ -12,11 +12,11 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 ## Features
 
 - **Dual Interface**: Use the intuitive GUI for easy operation or the robust CLI for scripting.
-- **Multi-Browser Support**: Works with Chrome, Edge, Firefox, and Safari.
+- **Multi-Browser Support**: Works with Chrome, Edge, Firefox, Safari, and OpenAI ChatGPT Atlas.
 - **Profile Management**: Automatically detects and manages multiple user profiles.
 - **Flexible Export/Import**:
     - Process any combination of browsers and profiles.
-    - Save backups to a custom location and automatically create ZIP archives.
+    - Save backups to a custom location, automatically create ZIP archives, or toggle `Zip after export` per run.
 - **Scheduled Backups**:
     - Set up automated, recurring backup tasks (daily, weekly, or monthly).
 - **Configuration Management**:
@@ -30,6 +30,7 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 - Microsoft Edge
 - Mozilla Firefox
 - Apple Safari
+- OpenAI ChatGPT Atlas
 
 ## Important Note: Safari & Full Disk Access
 
@@ -63,6 +64,10 @@ To prevent users from changing settings, you can hide the "Settings" tab in the 
 3.  Deploy this file to `/Library/Application Support/BookmarksBackupTool/Settings.plist` on the target machine.
 
 When the application launches, it will read this system-level setting and hide the "Settings" tab, preventing users from modifying the default configuration.
+
+### What's New in v2.5
+
+- **OpenAI Browser*: Added support to export and import Atlas Browser.
 
 ### What's New in v2.1
 
