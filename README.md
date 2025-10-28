@@ -6,7 +6,7 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 
 **Two variants**: the standard build exposes the Settings tab, while managed deployments can hide it by shipping a `Settings.plist` with `ShowSettingsTab` set to `false`.
 
-<img width="1152" height="842" alt="bookmarkstool" src="https://github.com/user-attachments/assets/53c065f5-2edb-4951-a64d-d655d3555a11" />
+<img width="982" height="863" alt="Appv2_5" src="https://github.com/user-attachments/assets/497d1324-de26-44ba-95f3-74cbf9b6ab9c" />
 
 
 ## Features
