@@ -7,7 +7,7 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 **This app if for MacOS use. I also built both PowerShell and Windows applications based on a script. These apps\scripts allow users to manage their own bookmarks, and both versions include command-line options for administrators.**
 
 **Other Options**
-- 💻 **Windows**: [https://github.com/hov172/MacOS-Bookmarks-Backup-Tool](https://github.com/hov172/MacOS-Bookmarks-Backup-Tool)  
+- 💻 **MacOS**: [https://github.com/hov172/MacOS-Bookmarks-Backup-Tool](https://github.com/hov172/MacOS-Bookmarks-Backup-Tool)  
 - 🖥️ **Windows**: [https://github.com/hov172/Win-Bookmarks-Backup-Tool/tree/main](https://github.com/hov172/Win-Bookmarks-Backup-Tool/tree/main)
 
 **Two variants**: the standard build exposes the Settings tab, while managed deployments can hide it by shipping a `Settings.plist` with `ShowSettingsTab` set to `false`.
