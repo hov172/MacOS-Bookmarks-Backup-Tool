@@ -4,7 +4,7 @@
 
 Whether you want to perform a quick manual backup, schedule regular automated exports, or migrate bookmarks, this tool has you covered.
 
-**This app if for Windows use. I also built both PowerShell and macOS applications based on a script. These apps\scripts allow users to manage their own bookmarks, and both versions include command-line options for administrators.**
+**This app if for MacOS use. I also built both PowerShell and Windows applications based on a script. These apps\scripts allow users to manage their own bookmarks, and both versions include command-line options for administrators.**
 
 **Other Options**
 - 💻 **Windows**: [https://github.com/hov172/MacOS-Bookmarks-Backup-Tool](https://github.com/hov172/MacOS-Bookmarks-Backup-Tool)  
