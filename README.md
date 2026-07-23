@@ -1,5 +1,10 @@
 # Bookmark Backup Tool - v2.7.1
 
+![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-5.9-orange)
+![Release](https://img.shields.io/badge/release-v2.7.1-green)
+![Tests](https://img.shields.io/badge/tests-63%20passing-brightgreen)
+
 **Requires macOS 14 (Sonoma) or later.**
 
 **Bookmark Backup Tool** is a powerful utility for macOS designed to back up, restore, and manage your web browser bookmarks. It offers both a user-friendly graphical interface (GUI) and a comprehensive command-line interface (CLI) for power users and automation.
@@ -14,7 +19,33 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 
 **Two variants**: the standard build exposes the Settings tab, while managed deployments can hide it by shipping a `Settings.plist` with `ShowSettingsTab` set to `false`.
 
-<img width="982" height="863" alt="Appv2_5" src="https://github.com/user-attachments/assets/497d1324-de26-44ba-95f3-74cbf9b6ab9c" />
+<img width="1680" height="961" alt="screenshot" src="https://github.com/user-attachments/assets/d3ca50d6-bd54-4d1e-a5c5-2c408b06ca01" />
+
+## Contents
+
+- [Installation](#installation)
+- [Features](#features)
+- [Safari & Full Disk Access](#important-note-safari--full-disk-access)
+- [Enterprise Deployment (MDM)](#enterprise-deployment-mdm)
+- [What's New](#whats-new-in-v271)
+- [GUI Usage](#usage-graphical-user-interface-gui)
+- [CLI Usage & Command Reference](#usage-command-line-interface-cli)
+- [Multi-User Deployment](#multi-user-deployment-scenarios)
+- [Building & Releasing](#building--releasing)
+
+## Installation
+
+**Installer (recommended):** download `BookmarkBackupTool-x.y.z.pkg` from the [Releases page](https://github.com/hov172/MacosBookmarksBackup/releases) and run it. It installs **Bookmark Backup Tool** to `/Applications` and creates the `bookmarks-backup` CLI symlink in `/usr/local/bin`.
+
+**Build from source:**
+```
+git clone https://github.com/hov172/MacosBookmarksBackup.git
+cd MacosBookmarksBackup
+scripts/create_package.sh        # produces scripts/release/BookmarkBackupTool-x.y.z.pkg
+```
+See [Building & Releasing](#building--releasing) for signing and notarization.
+
+**Enterprise:** deploy the pkg plus the TCC profile via MDM — see [Enterprise Deployment (MDM)](#enterprise-deployment-mdm).
 
 ## Features
 
@@ -33,6 +64,8 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
     - Backup files are validated (JSON structure, SQLite header, plist format) before they overwrite live browser data. Disable per-run with `--no-verify` or via the `verifyIntegrity` setting.
 - **Backup Health Monitoring**:
     - Every backup records its outcome; the GUI shows the last run's status, and `check` flags failed or overdue scheduled backups (`check --json` for MDM/fleet monitoring).
+- **Content Verification**:
+    - Every backup counts its bookmarks (Chrome/Edge/Atlas JSON, Firefox and Safari databases, Safari plist) and ships a `manifest.json` inventory inside the backup; a sharp count drop versus the previous like-for-like run raises a warning before retention prunes the good copies.
 - **Scheduled Backups**:
     - Set up automated, recurring backup tasks (daily, weekly, or monthly).
     - Scheduled runs log to `~/Library/Logs/BookmarksBackupTool/`.
@@ -89,6 +122,12 @@ To prevent users from changing settings, you can hide the "Settings" tab in the 
 3.  Deploy this file to `/Library/Application Support/BookmarksBackupTool/Settings.plist` on the target machine.
 
 When the application launches, it will read this system-level setting and hide the "Settings" tab, preventing users from modifying the default configuration.
+
+### What's New in v2.7.1
+
+- **Content verification**: every backup counts its bookmarks and ships a `manifest.json` inventory (per-file browser, count, size, app version, host). The CLI reports "Backed up N bookmarks", the GUI and `check` show the count, and a sharp drop versus the previous like-for-like run raises a warning before retention prunes the good copies.
+- **TCC profile regenerated** from the Developer ID-signed build (pins Full Disk Access to the team's code signature).
+- **Firefox stub profiles ignored**; SQLite snapshots are single self-contained files.
 
 ### What's New in v2.7
 
@@ -171,6 +210,9 @@ bookmarks-backup list-profiles
 # Export bookmarks from default browsers to the default location.
 # Each run is written to a timestamped Backup_YYYY-MM-DD_HHMMSS subfolder;
 # the oldest backups beyond the retention count are pruned automatically.
+# Every backup includes a manifest.json inventory and reports its bookmark
+# count ("Backed up 531 bookmarks."); a sharp count drop vs the previous
+# like-for-like run prints a warning.
 bookmarks-backup export
 
 # Export from specific browsers to a custom location
@@ -265,7 +307,8 @@ bookmarks-backup check --json
 - **Silent Operation**: CLI mode supports `--quiet` for automated scripts.
 - **JSON Output**: Structured output (`export --json`, `import --json`, `check --json`) for integration with monitoring systems.
 - **Configuration Management**: Export/import settings for consistent deployment.
-- **Fleet Health**: `check --json` + exit codes make backup health visible to MDM extension attributes.
+- **Fleet Health**: `check --json` + exit codes make backup health — including bookmark counts and drop warnings — visible to MDM extension attributes.
+- **Auditable Backups**: every backup carries a `manifest.json` inventory (files, per-browser bookmark counts, app version, host).
 
 ### Common Use Cases
 
