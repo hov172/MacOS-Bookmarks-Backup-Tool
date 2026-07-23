@@ -1,10 +1,12 @@
 # Bookmark Backup Tool - v2.7.0
 
+**Requires macOS 14 (Sonoma) or later.**
+
 **Bookmark Backup Tool** is a powerful utility for macOS designed to back up, restore, and manage your web browser bookmarks. It offers both a user-friendly graphical interface (GUI) and a comprehensive command-line interface (CLI) for power users and automation.
 
 Whether you want to perform a quick manual backup, schedule regular automated exports, or migrate bookmarks, this tool has you covered.
 
-**This app if for MacOS use. I also built both PowerShell and Windows applications based on a script. These apps\scripts allow users to manage their own bookmarks, and both versions include command-line options for administrators.**
+**This app is for macOS use. I also built both PowerShell and Windows applications based on a script. These apps\scripts allow users to manage their own bookmarks, and both versions include command-line options for administrators.**
 
 **Other Options**
 - 🖥️ **Windows Powershell**: [https://github.com/hov172/PS-Bookmark-Backup-Tool](https://github.com/hov172/PS-Bookmark-Backup-Tool)
@@ -22,8 +24,18 @@ Whether you want to perform a quick manual backup, schedule regular automated ex
 - **Flexible Export/Import**:
     - Process any combination of browsers and profiles.
     - Save backups to a custom location, automatically create ZIP archives, or toggle `Zip after export` per run.
+- **Versioned Backups & Retention**:
+    - Each export is written to a timestamped `Backup_YYYY-MM-DD_HHMMSS` folder (or timestamped ZIP), so older backups are never overwritten.
+    - A configurable retention count ("Backups to keep", default 10, 0 = unlimited) prunes the oldest backups automatically.
+- **Safe Database Snapshots**:
+    - Safari and Firefox databases are exported with SQLite's online backup API, producing consistent single-file snapshots even while the browser is running.
+- **Import Validation**:
+    - Backup files are validated (JSON structure, SQLite header, plist format) before they overwrite live browser data. Disable per-run with `--no-verify` or via the `verifyIntegrity` setting.
+- **Backup Health Monitoring**:
+    - Every backup records its outcome; the GUI shows the last run's status, and `check` flags failed or overdue scheduled backups (`check --json` for MDM/fleet monitoring).
 - **Scheduled Backups**:
     - Set up automated, recurring backup tasks (daily, weekly, or monthly).
+    - Scheduled runs log to `~/Library/Logs/BookmarksBackupTool/`.
 - **Configuration Management**:
     - Export and import the app's configuration to a JSON file, making setup on a new machine easy.
 - **Health Check & Utilities**:
@@ -52,6 +64,14 @@ The application will warn you if you create a scheduled task involving Safari wi
 
 For enterprise environments, IT administrators can deploy the included TCC privacy profile (`config/tcc-profile.mobileconfig`) via an MDM solution. This pre-approves Full Disk Access, so end-users do not need to grant it manually. **Note:** TCC profiles can only be installed via MDM, not by a user.
 
+**Important:** a TCC profile matches the app by its code signing requirement, so it only works against a **signed** build:
+
+1. Build and sign a release: `APP_SIGN_IDENTITY="Developer ID Application: …" INSTALLER_SIGN_IDENTITY="Developer ID Installer: …" NOTARY_PROFILE=<profile> scripts/create_package.sh`
+2. Regenerate the profile against that exact build: `scripts/generate_tcc_profile.sh "/Applications/Bookmark Backup Tool.app"`
+3. Deploy the regenerated `config/tcc-profile.mobileconfig` via MDM.
+
+An unsigned build has no stable code requirement and **cannot** be granted Full Disk Access by any TCC profile.
+
 ## Advanced Configuration
 
 The behavior of the Bookmark Backup Tool can be customized for managed environments by deploying a custom `Settings.plist` file. This is ideal for administrators who want to provide a simplified, pre-configured experience for users.
@@ -62,17 +82,35 @@ To prevent users from changing settings, you can hide the "Settings" tab in the 
 
 1.  Create or edit a `Settings.plist` file.
 2.  Add the following key-value pair:
-\`\`\`xml
+```xml
     <key>ShowSettingsTab</key>
     <false/>
-\`\`\`
+```
 3.  Deploy this file to `/Library/Application Support/BookmarksBackupTool/Settings.plist` on the target machine.
 
 When the application launches, it will read this system-level setting and hide the "Settings" tab, preventing users from modifying the default configuration.
 
+### What's New in v2.7
+
+- **Backup health monitoring**: every export records its outcome; the GUI shows "Last backup succeeded/FAILED", and `check` reports the last run and flags overdue scheduled backups (no success within twice the scheduled period). `check --json` emits the full health report for MDM extension attributes / fleet monitoring, and `check` exits non-zero when status is not OK.
+- **Cross-machine Firefox restore**: imports now match Firefox profiles by their `.default-release`-style suffix (with a single-backup fallback) instead of requiring the random profile-folder prefix to match — migration restores actually restore Firefox now.
+- **Firefox stub profiles ignored**: profile folders without a `places.sqlite` (Firefox's empty stubs) are no longer selected for export or preferred as restore targets, fixing "Source file not found" export failures.
+- **Self-contained snapshots**: SQLite backup artifacts are single files — WAL/shared-memory scaffolding is cleaned up after the snapshot.
+- **Requires macOS 14+**: the GUI migrated to the Observation framework (`@Observable`), eliminating the "Publishing changes from within view updates" warning class; export/import error alerts are now actually presented (previously they were created but never shown).
+- **Release automation**: pushing a `vX.Y.Z` tag builds the installer and attaches it to a GitHub Release (unsigned CI build; sign + notarize locally for distribution).
+
+### What's New in v2.6
+
+- **Versioned backups**: exports land in timestamped `Backup_…` folders with automatic retention (`backupRetentionCount` setting, "Backups to keep" in the GUI, `--flat` to opt out).
+- **Consistent database snapshots**: Safari/Firefox databases are exported via SQLite's online backup API — safe while the browser is running — with WAL sidecar handling on import.
+- **Import safety**: backup files are validated before overwriting live browser data (`verifyIntegrity` setting, `--no-verify` to skip), imports report per-browser success/failure/skip results, and the CLI exits non-zero on failure (`import --json` available for automation).
+- **Scheduler fixes**: scheduled jobs now pass a valid `--quiet` flag (previously `--silent`, which every run failed to parse), resolve the executable inside whatever the app bundle is named, and log to `~/Library/Logs/BookmarksBackupTool/` instead of a shared `/tmp` file.
+- **Log retention fixed**: log timestamps are ISO-8601 and the retention policy actually prunes old entries now.
+- **Release pipeline**: `scripts/create_package.sh` supports Developer ID signing, hardened runtime, and notarization; `scripts/generate_tcc_profile.sh` regenerates the MDM TCC profile from a signed build; CI runs the test suite on every push.
+
 ### What's New in v2.5
 
-- **OpenAI Browser*: Added support to export and import Atlas Browser.
+- **OpenAI Browser**: Added support to export and import Atlas Browser.
 
 ### What's New in v2.1
 
@@ -85,27 +123,25 @@ Launch the application to access the main window for all primary functions.
 
 - **Main Tab**: Perform immediate exports or imports. Select your browsers, choose a target path, and go.
 - **Profiles Tab**: Lists all browser profiles automatically detected on your system.
-- **Settings Tab**: Customize default behaviors, such as the default backup path, default browsers, and log retention. You can also manage and view scheduled backups from this tab.
+- **Settings Tab**: Customize default behaviors, such as the default backup path, default browsers, backups to keep, and log retention. You can also manage and view scheduled backups from this tab.
 
 ## Usage: Command-Line Interface (CLI)
 
-# Complete Application Usage Guide
+The CLI is perfect for scripting and automation.
 
-The Bookmark Backup Tool is a comprehensive utility for managing browser bookmarks on macOS with both GUI and CLI interfaces.
-
-## Command-Line Interface Access
+### Command-Line Interface Access
 
 The CLI can be accessed using the full path to the executable inside the application bundle.
 
-### Direct Path Execution (Always Works)
+#### Direct Path Execution (Always Works)
 After installing the application, you can run commands like this:
 ```
 # Full path to the CLI command
 /Applications/Bookmark\ Backup\ Tool.app/Contents/MacOS/BookmarksBackupTool --help
 ```
 
-### Creating a Symlink for Convenience
-For easier access, you can create a symbolic link to a directory in your system's `PATH`.
+#### Creating a Symlink for Convenience
+The installer creates a `bookmarks-backup` symlink in `/usr/local/bin` automatically. To create it manually:
 ```
 # Create symlink in /usr/local/bin (requires admin password)
 sudo ln -s "/Applications/Bookmark Backup Tool.app/Contents/MacOS/BookmarksBackupTool" /usr/local/bin/bookmarks-backup
@@ -114,11 +150,11 @@ sudo ln -s "/Applications/Bookmark Backup Tool.app/Contents/MacOS/BookmarksBacku
 bookmarks-backup --version
 bookmarks-backup check
 ```
-## CLI Command Reference
+### CLI Command Reference
 
 *(The following examples assume you have created the `bookmarks-backup` symlink for convenience.)*
 
-### Basic Commands
+#### Basic Commands
 ```
 # Show help information
 bookmarks-backup --help
@@ -130,9 +166,11 @@ bookmarks-backup status
 bookmarks-backup list-profiles
 ```
 
-### Exporting Bookmarks
+#### Exporting Bookmarks
 ```
-# Export bookmarks from default browsers to the default location
+# Export bookmarks from default browsers to the default location.
+# Each run is written to a timestamped Backup_YYYY-MM-DD_HHMMSS subfolder;
+# the oldest backups beyond the retention count are pruned automatically.
 bookmarks-backup export
 
 # Export from specific browsers to a custom location
@@ -141,13 +179,18 @@ bookmarks-backup export --chrome --firefox --path "/Users/Shared/Backups"
 # Export all profiles for all browsers and create a ZIP archive
 bookmarks-backup export --all-browsers --all-profiles --zip
 
+# Write files directly into the target path (pre-2.6 layout, no run subfolder)
+bookmarks-backup export --flat
+
 # Preview an export without writing files (dry run)
 bookmarks-backup export --all-browsers --dry-run
 ```
 
-### Importing Bookmarks
+#### Importing Bookmarks
 ```
-# Import bookmarks from a backup directory
+# Import bookmarks from a backup root: the newest Backup_ folder or ZIP inside
+# it is selected automatically. Point at a specific Backup_ folder or ZIP to
+# import exactly that run.
 bookmarks-backup import --all-browsers --path "/path/to/backup"
 
 # Import from a ZIP archive, forcing the import even if a browser is running
@@ -155,27 +198,38 @@ bookmarks-backup import --all-browsers --path "/path/to/backup.zip" --force
 
 # Skip creating a backup of existing bookmarks before import
 bookmarks-backup import --all-browsers --path "/path/to/backup" --no-backup
+
+# Skip pre-import validation of the backup files
+bookmarks-backup import --all-browsers --path "/path/to/backup" --no-verify
+
+# Machine-readable result (succeeded / failed / skipped / notes); the command
+# exits non-zero if any browser failed to import
+bookmarks-backup import --all-browsers --path "/path/to/backup" --json
 ```
 
-### Scheduled Backups Management
+#### Scheduled Backups Management
 ```
 # Create a daily scheduled backup at 10:00 AM
 bookmarks-backup schedule create --all-browsers --time "10:00" --frequency Daily
 
 # Create a weekly scheduled backup on Mondays at 9:30 AM
+# (launchd weekday numbering: 0-7, where 0 and 7 are Sunday, 1 is Monday)
 bookmarks-backup schedule create --all-browsers --time "09:30" --frequency Weekly --weekday 1
 
 # Remove the existing scheduled task
 bookmarks-backup schedule remove
 ```
 
-### Settings Management
+#### Settings Management
 ```
 # Get a specific setting value
 bookmarks-backup settings get defaultPath
 
 # Set a new default backup path
 bookmarks-backup settings set defaultPath "/Users/Shared/Backups"
+
+# Keep the 20 most recent backups in the target folder (0 = keep all)
+bookmarks-backup settings set backupRetentionCount 20
 
 # Export the entire application configuration to a JSON file
 bookmarks-backup settings export --output "/path/to/config.json"
@@ -184,27 +238,34 @@ bookmarks-backup settings export --output "/path/to/config.json"
 bookmarks-backup settings import "/path/to/config.json"
 ```
 
-### System Maintenance
+#### System Maintenance
 ```
 # Apply the log retention policy and clean up old logs
 bookmarks-backup cleanup-logs
 
-# Perform a system health check to verify permissions and profiles
+# Perform a system health check: permissions, scheduled task, profiles, and
+# the last backup's outcome (flags failed or overdue scheduled backups).
+# Exits non-zero when the overall status is not OK.
 bookmarks-backup check
+
+# Full health report as JSON — ideal for MDM extension attributes
+bookmarks-backup check --json
 ```
 
 ## Browser Support
 - **Google Chrome** - Supports multiple profiles
-- **Microsoft Edge** - Supports multiple profiles  
-- **Mozilla Firefox** - Supports multiple profiles
+- **Microsoft Edge** - Supports multiple profiles
+- **Mozilla Firefox** - Supports multiple profiles; empty stub profiles are ignored, and restores match profiles across machines by their `.default-release`-style suffix
 - **Apple Safari** - Single profile (requires Full Disk Access for scheduled backups)
+- **OpenAI ChatGPT Atlas** - Supports multiple profiles
 
 ## Enterprise Deployment Features
 - **MDM Deployment**: Can be deployed via Mobile Device Management solutions.
-- **TCC Profile**: Pre-configured privacy profile for automatic Full Disk Access.
+- **TCC Profile**: Privacy profile for automatic Full Disk Access (regenerate per signed build — see Enterprise Deployment above).
 - **Silent Operation**: CLI mode supports `--quiet` for automated scripts.
-- **JSON Output**: Structured output for integration with monitoring systems.
+- **JSON Output**: Structured output (`export --json`, `import --json`, `check --json`) for integration with monitoring systems.
 - **Configuration Management**: Export/import settings for consistent deployment.
+- **Fleet Health**: `check --json` + exit codes make backup health visible to MDM extension attributes.
 
 ### Common Use Cases
 
@@ -235,9 +296,10 @@ bookmarks-backup import --all-browsers --path "/Migration/Backup.zip" --force
 For enterprise environments, this profile **must be deployed via MDM** to automatically grant Full Disk Access permissions.
 
 ### Deployment via MDM (Required)
-1. Import the `tcc-profile.mobileconfig` file into your MDM solution.
-2. Deploy the profile to target devices along with the Bookmark Backup Tool application.
-3. Users will have Full Disk Access permissions automatically without manual intervention.
+1. Build and sign a release, then regenerate the profile against that build with `scripts/generate_tcc_profile.sh` (the profile embeds the app's code signing requirement and only matches the build it was generated from).
+2. Import the regenerated `tcc-profile.mobileconfig` file into your MDM solution.
+3. Deploy the profile to target devices along with the signed Bookmark Backup Tool application.
+4. Users will have Full Disk Access permissions automatically without manual intervention.
 
 ### Manual Installation (Not Supported for TCC)
 **Note**: Due to Apple's security policies, manually installing a TCC profile by double-clicking it **will fail** and will not grant the required permissions. This method is blocked by macOS to prevent malicious software from tricking users.
@@ -281,28 +343,17 @@ done
 1. **Use TCC Profiles**: Deploy the provided TCC profile via MDM to pre-authorize Full Disk Access.
 2. **Standardize Paths**: Use `~` in paths to ensure backups go to each user's personal directories.
 3. **Document Procedures**: Create clear instructions for users on setting up their backups.
-4. **Monitor Compliance**: Use the `check` command to verify backup configurations.
+4. **Monitor Compliance**: Use the `check` command (or `check --json` via MDM) to verify backups are actually succeeding.
 
-## Advanced Configuration: Hiding the Settings Tab
+## Building & Releasing
 
-The behavior of the Bookmark Backup Tool can be customized for managed environments. For administrators who want to provide a simplified, pre-configured experience, the "Settings" tab in the GUI can be hidden.
+- Regenerate the Xcode project after editing `project.yml`: `xcodegen`
+- Run the test suite: `swift test`
+- Build a signed, notarized installer (see the header of `scripts/create_package.sh` for the required environment variables): `scripts/create_package.sh`
+- Regenerate the MDM TCC profile against a signed build: `scripts/generate_tcc_profile.sh "/Applications/Bookmark Backup Tool.app"`
+- Pushing a `vX.Y.Z` tag builds an unsigned test installer and attaches it to a GitHub Release.
 
-1.  Create or edit a `Settings.plist` file.
-2.  Add the following key-value pair:
-    \`\`\`xml
-    <key>ShowSettingsTab</key>
-    <false/>
-    \`\`\`
-3.  Deploy this file to `/Library/Application Support/BookmarksBackupTool/Settings.plist` on the target machine.
-
-When the application launches, it will read this system-level setting and hide the "Settings" tab, preventing users from modifying the default configuration.
-
-
-The CLI is perfect for scripting and automation.
-
-### Executing Commands
-
-The executable is located inside the app bundle. After installing the app to `/Applications`, you can run commands like this:
+See [CHANGELOG.md](CHANGELOG.md) for the release history.
 
 ## 🌐 Connect With Me
 - [GitHub](https://github.com/hov172)  
