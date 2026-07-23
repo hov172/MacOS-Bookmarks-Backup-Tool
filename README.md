@@ -1,4 +1,4 @@
-# Bookmark Backup Tool - v2.7.0
+# Bookmark Backup Tool - v2.7.1
 
 **Requires macOS 14 (Sonoma) or later.**
 
