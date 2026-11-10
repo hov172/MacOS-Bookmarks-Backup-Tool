@@ -1,4 +1,4 @@
-# Bookmark Backup Tool - v2.7.1
+# <img src="images/app-icon.png" width="48" align="top" alt=""> Bookmark Backup Tool - v2.7.1
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
